@@ -6,10 +6,11 @@ How to deploy the Wise Win Newsletter from scratch on Vercel.
 
 ## Prerequisites
 
-- GitHub account with the repo: `yangfa1/verceltest`
-- Vercel account (free hobby tier works)
-- Resend account (free tier — [resend.com](https://resend.com))
-- Domain: `wisewin.ca` (optional for production email)
+- GitHub account with repos: `yangfa1/verceltest` and `yangfa1/wisewin-newsletters`
+- Vercel account ([vercel.com](https://vercel.com))
+- Resend account ([resend.com](https://resend.com))
+- Neon account ([neon.tech](https://neon.tech)) — or use Vercel Marketplace integration
+- Domain: `wisewin.ca` (for production email sending)
 
 ---
 
@@ -17,24 +18,23 @@ How to deploy the Wise Win Newsletter from scratch on Vercel.
 
 1. Go to [vercel.com](https://vercel.com) → **Add New Project**
 2. Import `yangfa1/verceltest` from GitHub
-3. Framework should auto-detect as **Next.js**
-4. Click **Deploy** — initial build may fail until env vars are set (that's OK)
+3. Framework auto-detects as **Next.js**
+4. Click **Deploy**
 
 ---
 
 ## Step 2: Create the Database (Neon)
 
-1. In Vercel → your project → **Storage** tab
-2. Click **Create Database** → find **Neon Serverless Postgres** under Marketplace
-3. Follow the setup flow — create a database named `wisewin-db`
-4. Vercel will auto-inject `POSTGRES_URL` into your project ✅
+1. Vercel → your project → **Storage** tab
+2. **Create Database** → select **Neon Serverless Postgres** (under Marketplace)
+3. Name it `wisewin-db` → complete setup
+4. Vercel auto-injects `POSTGRES_URL` ✅
 
 ---
 
-## Step 3: Create Tables
+## Step 3: Create Database Tables
 
-1. Go to **Vercel → Storage → wisewin-db → Query** tab
-2. Paste and run:
+In **Vercel → Storage → wisewin-db → Query**, run:
 
 ```sql
 CREATE TABLE IF NOT EXISTS subscribers (
@@ -56,73 +56,82 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   used_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS newsletter_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  friendly_name VARCHAR(255) NOT NULL,
+  folder_name VARCHAR(100) NOT NULL UNIQUE,
+  description TEXT,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+INSERT INTO newsletter_types (friendly_name, folder_name, description, active)
+VALUES
+  ('Weekly Financial Report', 'weekly-financial-report', 'Comprehensive market analysis every Monday morning', true),
+  ('Market Forecast', 'market-forecast', 'Data-driven predictions for the week ahead, every Friday', true)
+ON CONFLICT (folder_name) DO NOTHING;
 ```
 
 ---
 
 ## Step 4: Set Environment Variables
 
-In **Vercel → Settings → Environment Variables**, add:
+In **Vercel → Settings → Environment Variables**:
 
 | Variable | Value |
 |---|---|
-| `RESEND_API_KEY` | Your Resend API key (`re_****`) |
-| `FROM_EMAIL` | `newsletter@wisewin.ca` (or `onboarding@resend.dev` for testing) |
-| `NEXT_PUBLIC_BASE_URL` | Your Vercel URL e.g. `https://verceltest-umber.vercel.app` |
+| `RESEND_API_KEY` | Your Resend API key |
+| `FROM_EMAIL` | `onboarding@resend.dev` (testing) or `newsletter@wisewin.ca` (production) |
+| `NEXT_PUBLIC_BASE_URL` | `https://verceltest-umber.vercel.app` |
 | `ADMIN_EMAILS` | Comma-separated admin emails |
-| `ADMIN_JWT_SECRET` | A long random string (see below) |
+| `ADMIN_JWT_SECRET` | Random string (`openssl rand -base64 32`) |
+| `NEWSLETTER_SEND_TOKEN` | Shared secret for GitHub Actions auth |
 
-**Generate a secure JWT secret:**
-```bash
-openssl rand -base64 32
+---
+
+## Step 5: Set GitHub Actions Secret
+
+In **github.com/yangfa1/wisewin-newsletters → Settings → Secrets → Actions**:
+
+| Secret | Value |
+|---|---|
+| `NEWSLETTER_SEND_TOKEN` | Same value as Vercel env var above |
+
+---
+
+## Step 6: Redeploy
+
+Vercel → Deployments → **Redeploy** latest build.
+
+---
+
+## Step 7: Verify Domain (Production Email)
+
+1. [resend.com/domains](https://resend.com/domains) → **Add Domain** → `wisewin.ca`
+2. Add DNS records (SPF, DKIM, DMARC) to your DNS provider
+3. Wait for verification (~30 min)
+4. Update `FROM_EMAIL` → `newsletter@wisewin.ca` → Redeploy
+
+---
+
+## Step 8: Test End-to-End
+
 ```
-
----
-
-## Step 5: Redeploy
-
-After adding env vars:
-1. **Vercel → Deployments → Redeploy** the latest deployment
-2. Build should succeed ✅
-
----
-
-## Step 6: Verify Email Domain (Production)
-
-For production, verify `wisewin.ca` with Resend:
-
-1. Go to [resend.com/domains](https://resend.com/domains) → **Add Domain**
-2. Add `wisewin.ca`
-3. Copy the DNS records provided by Resend
-4. Add them to your DNS provider (where wisewin.ca is registered):
-   - SPF TXT record
-   - DKIM TXT record
-   - DMARC TXT record
-5. Wait for verification (up to 30 minutes)
-6. Update `FROM_EMAIL` in Vercel → Redeploy
-
----
-
-## Step 7: Test End-to-End
-
-1. Visit your Vercel URL
-2. Subscribe with a real email
-3. Check inbox for verification email
-4. Click verify link — should redirect to success page
-5. Visit `/admin/login`, enter your admin email
-6. Check inbox for magic link
-7. Click link — should open the admin dashboard
+✅ Subscribe at verceltest-umber.vercel.app
+✅ Receive verification email → click link
+✅ Log in to /admin/login → receive magic link → click link
+✅ Push test HTML to wisewin-newsletters → check GitHub Actions → receive newsletter email
+```
 
 ---
 
 ## Updating the App
 
-All deployments are triggered automatically by pushing to the `main` branch on GitHub.
+All deployments trigger automatically on push to `main`:
 
 ```bash
 git add .
 git commit -m "your change"
 git push origin main
 ```
-
-Vercel picks up the push and deploys within ~1 minute.

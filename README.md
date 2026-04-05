@@ -1,8 +1,9 @@
 # 慧盈财富 · Wise Win Financial Newsletter
 
-A subscription platform for weekly financial reports and stock market forecasts. Built with Next.js 14, Vercel, Neon Postgres, and Resend.
+A subscription platform for weekly financial reports and stock market forecasts. Built with Next.js 14, Neon Postgres, Resend, and Vercel.
 
-🌐 **Live Site:** https://verceltest-umber.vercel.app
+🌐 **Live Site:** https://verceltest-umber.vercel.app  
+📁 **Payload Repo:** https://github.com/yangfa1/wisewin-newsletters
 
 ---
 
@@ -44,6 +45,7 @@ Open [http://localhost:3000](http://localhost:3000)
 | Styling | Tailwind CSS |
 | Auth | JWT (jose) + Magic Links |
 | Deployment | Vercel |
+| Newsletter Delivery | GitHub Actions → Vercel API |
 
 ---
 
@@ -57,23 +59,64 @@ verceltest/
 │   ├── admin/                    # Admin panel (protected)
 │   │   ├── page.tsx              # Dashboard
 │   │   ├── login/                # Magic link login
-│   │   └── verify/               # Session creation
+│   │   ├── verify/               # Session creation
+│   │   └── newsletter-types/     # Manage newsletter types
 │   └── api/
 │       ├── subscribe/            # Subscribe API
 │       ├── unsubscribe/          # Unsubscribe API
+│       ├── unsubscribe-link/     # One-click unsubscribe from email
 │       ├── verify/               # Email verification API
+│       ├── newsletter-types/     # Public newsletter types list
+│       ├── send-newsletter/      # Triggered by GitHub Actions
 │       └── admin/                # Admin APIs
 │           ├── login/
 │           ├── verify/
 │           ├── stats/
-│           └── subscribers/
+│           ├── subscribers/
+│           └── newsletter-types/ # CRUD for newsletter types
 ├── components/
 │   ├── Header.tsx
 │   ├── Footer.tsx
-│   └── SubscribeForm.tsx
+│   └── SubscribeForm.tsx         # Dynamic, loads from DB
 ├── lib/
-│   ├── db.ts                     # Neon database client
+│   ├── db.ts                     # Neon database client + migrations
 │   ├── email.ts                  # Resend email templates
 │   └── auth.ts                   # JWT + admin auth
 └── docs/                         # Documentation
 ```
+
+---
+
+## 📧 Newsletter Sending Pipeline
+
+```
+Push HTML file to wisewin-newsletters repo
+  → GitHub Actions detects new .html file
+  → POST /api/send-newsletter (authenticated with NEWSLETTER_SEND_TOKEN)
+  → Vercel looks up newsletter type in DB
+  → Fetches all active subscribers
+  → Sends via Resend in batches of 50
+  → Unsubscribe link injected per subscriber
+```
+
+See the [payload repo](https://github.com/yangfa1/wisewin-newsletters) for how to drop newsletter files.
+
+---
+
+## 🗄️ Database Tables
+
+| Table | Purpose |
+|---|---|
+| `subscribers` | Email addresses, status, subscribed newsletters |
+| `admin_sessions` | Magic link tokens for admin login |
+| `newsletter_types` | Dynamic list of newsletter types |
+
+---
+
+## 🔒 Security
+
+- No passwords stored — magic link auth for admins, email verification for subscribers
+- JWT sessions: httpOnly, secure, sameSite cookies
+- Send endpoint protected by bearer token (`NEWSLETTER_SEND_TOKEN`)
+- All SQL queries parameterized (injection safe)
+- Admin email whitelist via env var
