@@ -1,13 +1,16 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.FROM_EMAIL || 'newsletter@wisewin.ca'
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+const getResend = () => new Resend(process.env.RESEND_API_KEY)
+const getFrom = () => process.env.FROM_EMAIL || 'newsletter@wisewin.ca'
+const getBase = () => process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const link = `${BASE}/verify?token=${token}`
+  const resend = getResend()
+  const from = getFrom()
+  const base = getBase()
+  const link = `${base}/verify?token=${token}`
   await resend.emails.send({
-    from: FROM,
+    from,
     to: email,
     subject: '✅ Confirm your Wise Win Newsletter subscription',
     html: `
@@ -37,8 +40,11 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendUnsubscribeConfirmEmail(email: string) {
+  const resend = getResend()
+  const from = getFrom()
+  const base = getBase()
   await resend.emails.send({
-    from: FROM,
+    from,
     to: email,
     subject: "You've been unsubscribed from Wise Win Newsletter",
     html: `
@@ -47,7 +53,7 @@ export async function sendUnsubscribeConfirmEmail(email: string) {
         <p style="color:#4b5563;line-height:1.6;">
           You've been successfully unsubscribed from Wise Win Financial newsletters. We're sorry to see you go!
         </p>
-        <p style="color:#4b5563;">Changed your mind? <a href="${BASE}" style="color:#0158a0;">Subscribe again here</a>.</p>
+        <p style="color:#4b5563;">Changed your mind? <a href="${base}" style="color:#0158a0;">Subscribe again here</a>.</p>
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
         <p style="color:#9ca3af;font-size:11px;text-align:center;">© ${new Date().getFullYear()} Wise Win Financial</p>
       </div>
@@ -56,9 +62,12 @@ export async function sendUnsubscribeConfirmEmail(email: string) {
 }
 
 export async function sendAdminMagicLink(email: string, token: string) {
-  const link = `${BASE}/admin/verify?token=${token}`
+  const resend = getResend()
+  const from = getFrom()
+  const base = getBase()
+  const link = `${base}/admin/verify?token=${token}`
   await resend.emails.send({
-    from: FROM,
+    from,
     to: email,
     subject: '🔐 Wise Win Admin Login Link',
     html: `
