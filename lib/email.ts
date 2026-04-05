@@ -8,7 +8,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   const resend = getResend()
   const from = getFrom()
   const base = getBase()
-  const link = `${base}/verify?token=${token}`
+  const link = `${base}/api/verify?token=${token}`
   await resend.emails.send({
     from,
     to: email,
@@ -65,7 +65,7 @@ export async function sendAdminMagicLink(email: string, token: string) {
   const resend = getResend()
   const from = getFrom()
   const base = getBase()
-  const link = `${base}/admin/verify?token=${token}`
+  const link = `${base}/api/admin/verify?token=${token}`
   await resend.emails.send({
     from,
     to: email,
