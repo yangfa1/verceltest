@@ -64,13 +64,13 @@ export default function SubscribeForm() {
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 md:p-8 text-left max-w-lg mx-auto border border-white/20">
+    <div className="bg-white rounded-2xl p-6 md:p-8 text-left max-w-lg mx-auto border border-gray-200 shadow-sm">
       {status === 'success' ? (
         <div className="text-center py-4">
           <div className="text-4xl mb-3">✉️</div>
-          <h3 className="text-xl font-semibold text-white mb-2">Check your inbox!</h3>
-          <p className="text-blue-100 text-sm">{message}</p>
-          <button onClick={() => setStatus('idle')} className="mt-4 text-gold-400 text-sm underline">
+          <h3 className="text-xl font-semibold text-brand-900 mb-2">Check your inbox!</h3>
+          <p className="text-gray-500 text-sm">{message}</p>
+          <button onClick={() => setStatus('idle')} className="mt-4 text-brand-700 text-sm underline">
             Submit another request
           </button>
         </div>
@@ -78,11 +78,11 @@ export default function SubscribeForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Newsletters */}
           <div className="space-y-2">
-            <p className="text-blue-100 text-sm font-medium">Select newsletters:</p>
+            <p className="text-gray-600 text-sm font-medium">Select newsletters:</p>
             {loadingTypes ? (
-              <p className="text-blue-200 text-sm">Loading newsletters...</p>
+              <p className="text-gray-400 text-sm">Loading newsletters...</p>
             ) : newsletters.length === 0 ? (
-              <p className="text-blue-200 text-sm">No newsletters available.</p>
+              <p className="text-gray-400 text-sm">No newsletters available.</p>
             ) : (
               newsletters.map(n => (
                 <label key={n.folder_name} className="flex items-start gap-3 cursor-pointer group">
@@ -93,11 +93,11 @@ export default function SubscribeForm() {
                     className="mt-1 w-4 h-4 rounded accent-gold-400 cursor-pointer"
                   />
                   <div>
-                    <div className="text-white text-sm font-medium group-hover:text-gold-400 transition-colors">
+                    <div className="text-gray-900 text-sm font-medium group-hover:text-brand-700 transition-colors">
                       {n.friendly_name}
                     </div>
                     {n.description && (
-                      <div className="text-blue-200 text-xs">{n.description}</div>
+                      <div className="text-gray-400 text-xs">{n.description}</div>
                     )}
                   </div>
                 </label>
@@ -112,11 +112,11 @@ export default function SubscribeForm() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             placeholder="your@email.com"
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-gold-400 transition"
+            className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition"
           />
 
           {status === 'error' && (
-            <p className="text-red-300 text-sm">{message}</p>
+            <p className="text-red-500 text-sm">{message}</p>
           )}
 
           <button
@@ -127,7 +127,7 @@ export default function SubscribeForm() {
             {status === 'loading' ? 'Sending...' : "Subscribe — It's Free"}
           </button>
 
-          <p className="text-blue-200 text-xs text-center">
+          <p className="text-gray-400 text-xs text-center">
             Already subscribed? Enter your email above to manage your preferences.
           </p>
         </form>
