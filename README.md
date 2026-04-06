@@ -2,8 +2,9 @@
 
 A subscription platform for weekly financial reports and stock market forecasts. Built with Next.js 14, Neon Postgres, Resend, and Vercel.
 
-🌐 **Live Site:** https://verceltest-umber.vercel.app  
-📁 **Payload Repo:** https://github.com/yangfa1/wisewin-newsletters
+🌐 **Live Site:** https://newsletter.wisewin.ca  
+📁 **Payload Repo:** https://github.com/yangfa1/wisewin-newsletters  
+🗂️ **App Repo:** https://github.com/yangfa1/newsletter
 
 ---
 
