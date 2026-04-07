@@ -12,7 +12,8 @@ export async function GET() {
       WHERE active = true
       ORDER BY created_at ASC
     `
-    return NextResponse.json({ types }, {
+    console.log('[newsletter-types] returned:', types.length, types.map((t: {folder_name: string}) => t.folder_name))
+    return NextResponse.json({ types, debug_count: types.length }, {
       headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
     })
   } catch (err) {
