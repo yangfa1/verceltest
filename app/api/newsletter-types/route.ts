@@ -12,7 +12,9 @@ export async function GET() {
       WHERE active = true
       ORDER BY created_at ASC
     `
-    return NextResponse.json({ types })
+    return NextResponse.json({ types }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+    })
   } catch (err) {
     console.error('[newsletter-types]', err)
     return NextResponse.json({ types: [] })
