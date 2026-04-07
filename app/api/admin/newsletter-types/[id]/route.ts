@@ -9,12 +9,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { friendly_name, description, active } = await req.json()
   const sql = getDb()
 
+  // Build update explicitly to avoid COALESCE boolean issues
   const result = await sql`
     UPDATE newsletter_types
     SET
-      friendly_name = COALESCE(${friendly_name ?? null}, friendly_name),
-      description   = COALESCE(${description ?? null}, description),
-      active        = COALESCE(${active ?? null}, active)
+      friendly_name = CASE WHEN ${friendly_name ?? null} IS NOT NULL THEN ${friendly_name ?? ''} ELSE friendly_name END,
+      description   = CASE WHEN ${description ?? null} IS NOT NULL THEN ${description ?? ''} ELSE description END,
+      active        = CASE WHEN ${active ?? null} IS NOT NULL THEN ${active === true} ELSE active END
     WHERE id = ${params.id}
     RETURNING *
   `
