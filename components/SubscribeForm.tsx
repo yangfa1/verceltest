@@ -8,6 +8,8 @@ interface NewsletterType {
   description: string | null
 }
 
+const MANDATORY = 'jennys-corner'
+
 export default function SubscribeForm() {
   const [newsletters, setNewsletters] = useState<NewsletterType[]>([])
   const [loadingTypes, setLoadingTypes] = useState(true)
@@ -21,7 +23,10 @@ export default function SubscribeForm() {
       .then(r => r.json())
       .then(d => {
         setNewsletters(d.types || [])
-        setSelected((d.types || []).map((t: NewsletterType) => t.folder_name))
+        // Always include mandatory newsletter
+        const defaults = (d.types || []).map((t: NewsletterType) => t.folder_name)
+        if (!defaults.includes(MANDATORY)) defaults.push(MANDATORY)
+        setSelected(defaults)
         setLoadingTypes(false)
       })
       .catch(() => setLoadingTypes(false))
@@ -89,12 +94,16 @@ export default function SubscribeForm() {
                   <input
                     type="checkbox"
                     checked={selected.includes(n.folder_name)}
-                    onChange={() => toggle(n.folder_name)}
-                    className="mt-1 w-4 h-4 rounded accent-gold-400 cursor-pointer"
+                    onChange={() => n.folder_name !== MANDATORY && toggle(n.folder_name)}
+                    disabled={n.folder_name === MANDATORY}
+                    className="mt-1 w-4 h-4 rounded accent-brand-700 cursor-pointer disabled:cursor-not-allowed"
                   />
                   <div>
                     <div className="text-gray-900 text-sm font-medium group-hover:text-brand-700 transition-colors">
                       {n.friendly_name}
+                      {n.folder_name === MANDATORY && (
+                        <span className="ml-2 text-xs text-gray-400 font-normal">Included with all subscriptions</span>
+                      )}
                     </div>
                     {n.description && (
                       <div className="text-gray-400 text-xs">{n.description}</div>
