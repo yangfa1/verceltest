@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const sql = getDb()
     const all = await sql`SELECT * FROM newsletter_types ORDER BY created_at ASC`
-    const types = all.filter((t: Record<string, unknown>) => t.active === true)
+    const types = all.filter((t: Record<string, unknown>) => t.active === true || t.active === 'true' || t.active === 't')
       .map((t: Record<string, unknown>) => ({
         id: t.id,
         friendly_name: t.friendly_name,
