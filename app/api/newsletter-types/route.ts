@@ -14,9 +14,7 @@ export async function GET() {
         id: t.id,
         friendly_name: t.friendly_name,
         folder_name: t.folder_name,
-        description: t.description,
-        active: t.active,
-        created_at: t.created_at
+        description: t.description
       }))
     return NextResponse.json({ types }, {
       headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
